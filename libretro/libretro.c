@@ -28,8 +28,8 @@ cothread_t emuThread;
 int CROP_WIDTH;
 int CROP_HEIGHT;
 int VIRTUAL_WIDTH ;
-int retrow=1024; 
-int retroh=1024;
+int retrow=352; 
+int retroh=240;
 
 extern unsigned short int bmp[1024*1024];
 extern int STATUTON, SHOWKEY, SHIFTON, MOUSEMODE, PAS, SND;
@@ -735,16 +735,15 @@ static void update_variables(void)
    }
 
    // Video High resolution
-   // Say bye bye.  All this did was create confusion.
-   //var.key = "hatari_video_hires";
-   //var.value = NULL;
-   //int new_video_config = 0;
+   var.key = "hatari_video_hires";
+   var.value = NULL;
+   int new_video_config = 0;
 
-   //if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   //{
-   //    if (strcmp(var.value, "true") == 0)
-   //        new_video_config |= HATARI_VIDEO_HIRES;
-   //}
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+       if (strcmp(var.value, "true") == 0)
+           new_video_config |= HATARI_VIDEO_HIRES;
+   }
 
    // Video Crop Overscan
    var.key = "hatari_video_crop_overscan";
@@ -754,72 +753,59 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
        if (strcmp(var.value, "true") == 0)
+       {
            hatari_borders = false;
-       //new_video_config |= HATARI_VIDEO_CROP;
+           new_video_config |= HATARI_VIDEO_CROP;
+       }
        else
            hatari_borders = true;
-           
    }
 
-   //leave here for archival purposes.  Or just in case I retract my changes.  :P
-   //if (new_video_config != video_config)
-   //{
-   //    video_config = new_video_config;
-   //    switch (video_config)
-   //    {
-   //    case HATARI_VIDEO_OV_LO:
-   //        retrow = 416;
-   //        retroh = 274;
-   //        hatari_borders = true;
-   //        break;
-   //    case HATARI_VIDEO_CR_LO:
-   //        retrow = 366;
-   //        retroh = 243;
-   //        // Strange, do not work if set to false...  double image
-   //        hatari_borders = false;
-   //        break;
-   //    case HATARI_VIDEO_OV_HI:
-   //        retrow = 832;
-   //        retroh = 548;
-   //        hatari_borders = true;
-   //        break;
-   //    case HATARI_VIDEO_CR_HI:
-   //        retrow = 732;
-   //        retroh = 486;
-   //        hatari_borders = false;
-   //        break;
-   //    }
-
-   //    retrow = 832;
-   //    retroh = 552;
-   //    log_cb(RETRO_LOG_INFO, "Resolution %u x %u.\n", retrow, retroh);
-
-   //     moved to retro_run()
-   //    CROP_WIDTH = retrow;
-   //    CROP_HEIGHT = (retroh - 80);
-   //    VIRTUAL_WIDTH = retrow;
-
-   //    texture_init();
-
-   //     It's alive! It's alive!
-   //    if (libretro_runloop_active)
-   //    {
-   //        ConfigureParams.Screen.bAllowOverscan = hatari_borders;
-   //        //why do all the work when the Hatari core can do the work for us?
-   //        Screen_ModeChanged();
-   //        Screen_SetFullUpdate();
-   //    }
-   //}
-
-   if (hatari_borders != old_hatari_borders && libretro_runloop_active)
+   if (new_video_config != video_config)
    {
-       retrow = 832;
-       retroh = 552;
+       video_config = new_video_config;
+       switch (video_config)
+       {
+       case HATARI_VIDEO_OV_LO:
+           retrow = 416;
+           retroh = 274;
+           hatari_borders = true;
+           break;
+       case HATARI_VIDEO_CR_LO:
+           retrow = 366;
+           retroh = 243;
+           hatari_borders = false;
+           break;
+       case HATARI_VIDEO_OV_HI:
+           retrow = 832;
+           retroh = 548;
+           hatari_borders = true;
+           break;
+       case HATARI_VIDEO_CR_HI:
+           retrow = 732;
+           retroh = 486;
+           hatari_borders = false;
+           break;
+       }
+       log_cb(RETRO_LOG_INFO, "Resolution %u x %u.\n", retrow, retroh);
+       texture_init();
+       if (libretro_runloop_active)
+       {
+           struct retro_game_geometry new_geom = { retrow, retroh, 832, 548, 4.0 / 3.0 };
+           environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &new_geom);
+           ConfigureParams.Screen.bAllowOverscan = hatari_borders;
+           Screen_ModeChanged();
+           Screen_SetFullUpdate();
+       }
+   }
+   else if (hatari_borders != old_hatari_borders && libretro_runloop_active)
+   {
        log_cb(RETRO_LOG_INFO, "Resolution %u x %u.\n", retrow, retroh);
        texture_init();
 
+       struct retro_game_geometry new_geom = { retrow, retroh, 832, 548, 4.0 / 3.0 };
+       environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &new_geom);
        ConfigureParams.Screen.bAllowOverscan = hatari_borders;
-       //why do all the work when the Hatari core can do the work for us?
        Screen_ModeChanged();
        Screen_SetFullUpdate();
    }
@@ -1461,7 +1447,7 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   struct retro_game_geometry geom = { retrow, retroh, 1024, 1024, 4.0 / 3.0 };
+   struct retro_game_geometry geom = { retrow, retroh, 832, 548, 4.0 / 3.0 };
    struct retro_system_timing timing = { FRAMERATE, SAMPLERATE };
 
    info->geometry = geom;
@@ -1496,18 +1482,19 @@ void update_timing(void)
 void retro_run(void)
 {
    int x;
-   unsigned width = retrow;
-   unsigned height = retroh;
-
    bool updated = false;
    libretro_runloop_active = true;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+      update_variables();
+
+   unsigned width = retrow;
+   unsigned height = retroh;
 
    CROP_WIDTH = retrow;
    CROP_HEIGHT = (retroh - 80);
    VIRTUAL_WIDTH = retrow;
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      update_variables();
 
    if (CHANGE_RATE || CHANGEAV_TIMING)
    {
