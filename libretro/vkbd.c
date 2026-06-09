@@ -51,6 +51,14 @@ static long   vkey_pressed_time  = 0;
 static bool   vkey_press_hold    = false;
 #define VKEY_HOLD_DELAY  600   /* ms before sticky activates */
 
+/* Pointer/touch state */
+static int    last_pointer_x  = 0;
+static int    last_pointer_y  = 0;
+static int    last_pointer_p  = 0;
+static bool   pointer_active  = false;
+static int    vkbd_x_min = 0, vkbd_x_max = 0;
+static int    vkbd_y_min = 0, vkbd_y_max = 0;
+
 /* Forward declarations */
 static void st_key_down(int scancode);
 static void st_key_up(int scancode);
@@ -125,6 +133,12 @@ void print_vkbd(void)
    int VK_YTEXT = VK_YBASE + (2 * FONT_H);
 
    int SPACING = 1;
+
+   /* Store bounds for pointer hit testing */
+   vkbd_x_min = VK_XBASE;
+   vkbd_x_max = VK_XBASE + VK_XSIDE * VKBDX;
+   vkbd_y_min = VK_YBASE;
+   vkbd_y_max = VK_YBASE + VK_YSIDE * VKBDY;
 
    /* Draw keys */
    for (x = 0; x < VKBDX; x++)
@@ -375,6 +389,65 @@ void input_vkbd(void)
 
    if (vkey_sticky1_release) { vkey_sticky1 = -1; vkey_sticky1_release = false; }
    if (vkey_sticky2_release) { vkey_sticky2 = -1; vkey_sticky2_release = false; }
+
+   /* Pointer / touchscreen */
+   {
+      int p_x = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+      int p_y = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+      int p_p = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+
+      /* Activate pointer on first press, deactivate on joypad use */
+      if (!last_pointer_p && p_p)
+         pointer_active = true;
+
+      if (pointer_active && p_x != 0 && p_y != 0 &&
+          (p_x != last_pointer_x || p_y != last_pointer_y || p_p != last_pointer_p))
+      {
+         /* Convert -0x7fff..0x7fff pointer range to screen coords */
+         int px = (int)((p_x + 0x7fff) * retrow / 0xffff);
+         int py = (int)((p_y + 0x7fff) * retroh / 0xffff);
+
+         if (px >= vkbd_x_min && px <= vkbd_x_max &&
+             py >= vkbd_y_min && py <= vkbd_y_max)
+         {
+            float kw = (float)(vkbd_x_max - vkbd_x_min) / VKBDX;
+            float kh = (float)(vkbd_y_max - vkbd_y_min) / VKBDY;
+            int nx = (int)((px - vkbd_x_min) / kw);
+            int ny = (int)((py - vkbd_y_min) / kh);
+            nx = (nx < 0) ? 0 : (nx > VKBDX-1) ? VKBDX-1 : nx;
+            ny = (ny < 0) ? 0 : (ny > VKBDY-1) ? VKBDY-1 : ny;
+            vkey_pos_x = nx;
+            vkey_pos_y = ny;
+
+            /* Touch press = key press */
+            if (!last_pointer_p && p_p)
+            {
+               vkflag[4] = 1;
+               vkey_pressed_time = frame_count;
+            }
+            else if (last_pointer_p && !p_p)
+            {
+               /* Simulate button release */
+               if (vkflag[4] == 1)
+               {
+                  vkflag[4] = 0;
+                  int page = vkbd_page ? VKBDX * VKBDY : 0;
+                  int idx  = vkey_pos_y * VKBDX + vkey_pos_x + page;
+                  int val  = st_vkeys[idx].val;
+                  if (val > 0) { st_key_down(val); vkey_pressed = val; }
+                  else if (val == VKBD_PAGE2) { vkbd_page = !vkbd_page; texture_init(); }
+                  else if (val == VKBD_HIDE)  { toggle_vkbd(); }
+                  else if (val == VKBD_STAT)  { STATUTON = -STATUTON; }
+                  else if (val == VKBD_COLOR) { opt_vkbd_theme = (opt_vkbd_theme % 3) + 1; }
+               }
+            }
+         }
+
+         last_pointer_x = p_x;
+         last_pointer_y = p_y;
+         last_pointer_p = p_p;
+      }
+   }
 
    /* Draw */
    print_vkbd();
