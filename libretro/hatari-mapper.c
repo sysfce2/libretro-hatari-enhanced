@@ -94,7 +94,6 @@ char Key_Sate[512];
 char Key_Sate2[512];
 int oldi=-1;
 int vkx=0,vky=0;
-int vkflag[5]={0,0,0,0,0};
 int mapper_keys[RETRO_DEVICE_ID_JOYPAD_LAST] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 //STATS GUI
@@ -204,7 +203,7 @@ int retro_keymap_id(const char* val)
 }
 
 /* input state */
-static retro_input_state_t input_state_cb;
+retro_input_state_t input_state_cb;
 static retro_input_poll_t input_poll_cb;
 
 void retro_set_input_state(retro_input_state_t cb)
@@ -942,118 +941,12 @@ void update_input(void)
       }
    }
 
-   // ignore joystick 1 and mouse input when VKBD active.
-   // Guess what!?  With RETROMAPPING active.. we can actually read these JOYPAD buttons directly!  No weird remapping to confuse the user!
-   if(SHOWKEY==1)
+   /* Virtual keyboard - replaced by new vkbd.c port */
+   if (SHOWKEY == 1)
    {
-      // analog stick can work the keyboard
-      al[0] =(input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X));
-      al[1] =(input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y));
-      bool al_up = al[1] <= JOYRANGE_UP_VALUE;
-      bool al_dn = al[1] >= JOYRANGE_DOWN_VALUE;
-      bool al_lf = al[0] <= JOYRANGE_LEFT_VALUE;
-      bool al_rt = al[0] >= JOYRANGE_RIGHT_VALUE;
-
-      if ( (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP) || al_up) && vkflag[0]==0 )
-         vkflag[0]=1;
-      else if (vkflag[0]==1 && ! (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP) || al_up) )
-      {
-         vkflag[0]=0;
-         vky -= 1; 
-      }
-
-      if ( (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN) || al_dn) && vkflag[1]==0 )
-         vkflag[1]=1;
-      else if (vkflag[1]==1 && ! (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN) || al_dn) )
-      {
-         vkflag[1]=0;
-         vky += 1; 
-      }
-
-      if ( (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT) || al_lf) && vkflag[2]==0 )
-         vkflag[2]=1;
-      else if (vkflag[2]==1 && ! (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT) || al_lf) )
-      {
-         vkflag[2]=0;
-         vkx -= 1;
-      }
-
-      if ( (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT) || al_rt) && vkflag[3]==0 )
-         vkflag[3]=1;
-      else if (vkflag[3]==1 && ! (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT) || al_rt) )
-      {
-         vkflag[3]=0;
-         vkx += 1;
-      }
-
-      if(vkx<0)vkx=9;
-      if(vkx>9)vkx=0;
-      if(vky<0)vky=4;
-      if(vky>4)vky=0;
-
-      virtual_kdb(bmp,vkx,vky);
-
-      if(input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B)  && vkflag[4]==0)
-         vkflag[4]=1;
-      else if( !input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B)  && vkflag[4]==1)
-      {
-         vkflag[4]=0;
-         i=check_vkey2(vkx,vky);
-
-         if(i==-2)
-         {
-            NPAGE=-NPAGE;oldi=-1;
-            //Clear interface zone
-            texture_init();           //clear kbd bmp so complete keyboard is cleared
-            Screen_SetFullUpdate();
-         }
-         else if(i==-1)
-            oldi=-1;
-         else if(i==-3)
-         {
-            //KDB bgcolor
-            Screen_SetFullUpdate();
-            KCOL=-KCOL;
-            oldi=-1;
-         }
-         else if(i==-4)
-         {
-            //VKbd show/hide
-            oldi=-1;
-            texture_init();           //clear kbd bmp so complete keyboard is cleared
-            Screen_SetFullUpdate();
-            SHOWKEY=-SHOWKEY;
-         }
-         else if(i==-5)
-         {
-            //Toggle stats
-            STATUTON=-STATUTON;
-            Screen_SetFullUpdate();
-         }
-         else
-         {
-            if(i==0x2a)
-            {
-
-               IKBD_PressSTKey(i,(SHIFTON == 1)?0:1);
-
-               SHIFTON=-SHIFTON;
-
-               Screen_SetFullUpdate();
-
-               oldi=-1;
-            }
-            else
-            {
-               oldi=i;
-               IKBD_PressSTKey(i,1);
-            }
-         }
-      }
-
-      if(STATUTON==1)
+      input_vkbd();
+      if (STATUTON == 1)
          Print_Statut();
-
       return;
    }
 
