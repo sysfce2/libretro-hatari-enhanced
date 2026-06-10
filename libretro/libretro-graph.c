@@ -64,7 +64,7 @@ int RGBc(int r, int g, int b) { return RGB565(r, g, b); }
 
 
 
-void draw_fbox(int x, int y, int dx, int dy, uint32_t color, libretro_graph_alpha_t alpha)
+void draw_fbox(int x, int y, int dx, int dy, uint16_t color, libretro_graph_alpha_t alpha)
 {
          draw_fbox_bmp16((uint16_t *)retro_bmp, x, y, dx, dy, color, alpha);
 }
@@ -188,7 +188,7 @@ void draw_fbox_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, uint32_t co
 }
 
 
-void draw_box(int x, int y, int dx, int dy, int width, int height, uint32_t color, libretro_graph_alpha_t alpha)
+void draw_box(int x, int y, int dx, int dy, int width, int height, uint16_t color, libretro_graph_alpha_t alpha)
 {
          draw_box_bmp16((uint16_t *)retro_bmp, x, y, dx, dy, width, height, color, alpha);
 }
@@ -563,7 +563,7 @@ void draw_box_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, int width, i
 
 
 
-void draw_hline(int x, int y, int dx, int dy, uint32_t color)
+void draw_hline(int x, int y, int dx, int dy, uint16_t color)
 {
          draw_hline_bmp16((uint16_t *)retro_bmp, x, y, dx, dy, color);
 }
@@ -600,7 +600,7 @@ void draw_hline_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, uint32_t c
    }
 }
 
-void draw_vline(int x, int y, int dx, int dy, uint32_t color)
+void draw_vline(int x, int y, int dx, int dy, uint16_t color)
 {
          draw_vline_bmp16((uint16_t *)retro_bmp, x, y, dx, dy, color);
 }
@@ -1218,7 +1218,7 @@ void draw_string_bmp32(uint32_t *surf, uint16_t x, uint16_t y,
 }
 
 void draw_text(uint16_t x, uint16_t y,
-      uint32_t fgcol, uint32_t bgcol, libretro_graph_alpha_t alpha, libretro_graph_bg_t draw_bg,
+      uint16_t fgcol, uint16_t bgcol, libretro_graph_alpha_t alpha, libretro_graph_bg_t draw_bg,
       uint8_t scalex, uint8_t scaley, uint16_t max, const unsigned char *string)
 {
          draw_text_bmp16((uint16_t *)retro_bmp, x, y, fgcol, bgcol, alpha, draw_bg, scalex, scaley, max, string);

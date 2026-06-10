@@ -64,24 +64,24 @@ typedef enum {
 
 int RGBc(int r, int g, int b);
 
-void draw_fbox(int x, int y, int dx, int dy, uint32_t color, libretro_graph_alpha_t alpha);
+void draw_fbox(int x, int y, int dx, int dy, uint16_t color, libretro_graph_alpha_t alpha);
 void draw_fbox_bmp16(uint16_t *buffer, int x, int y, int dx, int dy, uint16_t color, libretro_graph_alpha_t alpha);
 void draw_fbox_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, uint32_t color, libretro_graph_alpha_t alpha);
 
-void draw_box(int x, int y, int dx, int dy, int width, int height, uint32_t color, libretro_graph_alpha_t alpha);
+void draw_box(int x, int y, int dx, int dy, int width, int height, uint16_t color, libretro_graph_alpha_t alpha);
 void draw_box_bmp16(uint16_t *buffer, int x, int y, int dx, int dy, int width, int height, uint16_t color, libretro_graph_alpha_t alpha);
 void draw_box_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, int width, int height, uint32_t color, libretro_graph_alpha_t alpha);
 
-void draw_hline(int x, int y, int dx, int dy, uint32_t color);
+void draw_hline(int x, int y, int dx, int dy, uint16_t color);
 void draw_hline_bmp16(uint16_t *buffer, int x, int y, int dx, int dy, uint16_t color);
 void draw_hline_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, uint32_t color);
 
-void draw_vline(int x, int y, int dx, int dy, uint32_t color);
+void draw_vline(int x, int y, int dx, int dy, uint16_t color);
 void draw_vline_bmp16(uint16_t *buffer, int x, int y, int dx, int dy, uint16_t color);
 void draw_vline_bmp32(uint32_t *buffer, int x, int y, int dx, int dy, uint32_t color);
 
 void draw_text(uint16_t x, uint16_t y,
-      uint32_t fgcol, uint32_t bgcol, libretro_graph_alpha_t alpha, libretro_graph_bg_t draw_bg,
+      uint16_t fgcol, uint16_t bgcol, libretro_graph_alpha_t alpha, libretro_graph_bg_t draw_bg,
       uint8_t scalex, uint8_t scaley, uint16_t max, const unsigned char *string);
 void draw_text_bmp16(uint16_t *buffer, uint16_t x, uint16_t y,
       uint16_t fgcol, uint16_t bgcol, libretro_graph_alpha_t alpha, libretro_graph_bg_t draw_bg,
