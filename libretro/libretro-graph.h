@@ -7,7 +7,6 @@
 #undef RGB565
 #define RGB565(r,g,b) (((r>>3)<<11)|((g>>2)<<5)|(b>>3))
 
-#define RGB565(r, g, b) ((((r>>3)<<11) | ((g>>2)<<5) | (b>>3)))
 #define RGB888(r, g, b) (((r * 255 / 31) << 16) | ((g * 255 / 31) << 8) | (b * 255 / 31))
 #define ARGB888(a, r, g, b) ((a << 24) | (r << 16) | (g << 8) | b)
 
@@ -62,6 +61,8 @@ typedef enum {
    GRAPH_BG_SHADOW,
    GRAPH_BG_OUTLINE
 } libretro_graph_bg_t;
+
+int RGBc(int r, int g, int b);
 
 void draw_fbox(int x, int y, int dx, int dy, uint32_t color, libretro_graph_alpha_t alpha);
 void draw_fbox_bmp16(uint16_t *buffer, int x, int y, int dx, int dy, uint16_t color, libretro_graph_alpha_t alpha);
