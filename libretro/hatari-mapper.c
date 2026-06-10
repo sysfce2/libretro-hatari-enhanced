@@ -6,7 +6,7 @@
 #include "vkbd.h"
 #include "joy.h"
 #include "screen.h"
-#include "video.h"	/* FIXME: video.h is dependent on HBL_PALETTE_LINES from screen.h */
+#include "video.h"   /* FIXME: video.h is dependent on HBL_PALETTE_LINES from screen.h */
 #include "ikbd.h"
 #include "main.h"
 
@@ -107,16 +107,16 @@ static bool serialize_forward;
 static char* serialize_data;
 
 #define SERIALIZE_STEP \
-	if (serialize_forward) memcpy(serialize_data, x, sizeof(*x)); \
-	else                   memcpy(x, serialize_data, sizeof(*x)); \
-	serialize_data += sizeof(*x);
+   if (serialize_forward) memcpy(serialize_data, x, sizeof(*x)); \
+   else                   memcpy(x, serialize_data, sizeof(*x)); \
+   serialize_data += sizeof(*x);
 
 void serialize_char(char *x) { SERIALIZE_STEP }
 void serialize_int(int *x) { SERIALIZE_STEP }
 
 int hatari_mapper_serialize_size(void)
 {
-	return 1023; // +1 byte for version makes an even 1kb header
+   return 1023; // +1 byte for version makes an even 1kb header
 }
 
 static bool hatari_mapper_serialize_bidi(char* data, char version)
@@ -124,70 +124,70 @@ static bool hatari_mapper_serialize_bidi(char* data, char version)
    int i;
    int NUMjoy  = 0;
    int firstps = 0;
-	/* ignoring version, there is only one version so far
-	 * (Might be okay to append to this list without increasing version
-	 * if 0 is an acceptable fallback for the new value,
-	 * but do not reorder without increasing version number.)
+   /* ignoring version, there is only one version so far
+    * (Might be okay to append to this list without increasing version
+    * if 0 is an acceptable fallback for the new value,
+    * but do not reorder without increasing version number.)
     */
-	serialize_data = data;
-	serialize_int(&NPAGE);
-	serialize_int(&KCOL);
-	serialize_int(&BKGCOLOR);
-	serialize_int(&MAXPAS);
-	serialize_int(&SHIFTON);
-	serialize_int(&MOUSEMODE);
-	serialize_int(&SHOWKEY);
-	serialize_int(&PAS);
-	serialize_int(&STATUTON);
-	serialize_int(&SND);
-	serialize_int(&pauseg);
-	serialize_int(&slowdown);
-	serialize_int(&fmousex);
-	serialize_int(&fmousey);
-	serialize_int(&gmx);
-	serialize_int(&gmy);
-	serialize_int(&NUMjoy); // this variable was removed
-	serialize_int(&firstps); // this variable was removed
-	serialize_int(&mbL);
-	serialize_int(&mbR);
-	serialize_int(&mmbL);
-	serialize_int(&mmbR);
-	serialize_int(&oldi);
-	serialize_int(&vkx);
-	serialize_int(&vky);
-	for (i=0; i<5;  ++i)
+   serialize_data = data;
+   serialize_int(&NPAGE);
+   serialize_int(&KCOL);
+   serialize_int(&BKGCOLOR);
+   serialize_int(&MAXPAS);
+   serialize_int(&SHIFTON);
+   serialize_int(&MOUSEMODE);
+   serialize_int(&SHOWKEY);
+   serialize_int(&PAS);
+   serialize_int(&STATUTON);
+   serialize_int(&SND);
+   serialize_int(&pauseg);
+   serialize_int(&slowdown);
+   serialize_int(&fmousex);
+   serialize_int(&fmousey);
+   serialize_int(&gmx);
+   serialize_int(&gmy);
+   serialize_int(&NUMjoy); // this variable was removed
+   serialize_int(&firstps); // this variable was removed
+   serialize_int(&mbL);
+   serialize_int(&mbR);
+   serialize_int(&mmbL);
+   serialize_int(&mmbR);
+   serialize_int(&oldi);
+   serialize_int(&vkx);
+   serialize_int(&vky);
+   for (i=0; i<5;  ++i)
       serialize_int(&(vkflag[i]));
-	for (i=0; i<16; ++i)
+   for (i=0; i<16; ++i)
       serialize_int(&(mbt[i]));
 
-	if ((int)(data - serialize_data) > hatari_mapper_serialize_size())
-	{
-		fprintf(stderr, "hatari_mapper_serialize_size()=%d insufficient! (Needs: %d)\n", hatari_mapper_serialize_size(), (int)(data - serialize_data));
-		return false;
-	}
-	return true;
+   if ((int)(data - serialize_data) > hatari_mapper_serialize_size())
+   {
+      fprintf(stderr, "hatari_mapper_serialize_size()=%d insufficient! (Needs: %d)\n", hatari_mapper_serialize_size(), (int)(data - serialize_data));
+      return false;
+   }
+   return true;
 }
 
 bool hatari_mapper_serialize(char* data, char version)
 {
-	serialize_forward = true;
-	return hatari_mapper_serialize_bidi(data, version);
+   serialize_forward = true;
+   return hatari_mapper_serialize_bidi(data, version);
 }
 
 bool hatari_mapper_unserialize(const char* data, char version)
 {
-	serialize_forward = false;
-	int pauseg_old    = pauseg;
-	bool result       = hatari_mapper_serialize_bidi((char*)data, version);
-	exitgui            = 0;
-	if (pauseg_old && !pauseg)
-	{
+   serialize_forward = false;
+   int pauseg_old    = pauseg;
+   bool result       = hatari_mapper_serialize_bidi((char*)data, version);
+   exitgui            = 0;
+   if (pauseg_old && !pauseg)
+   {
       /* want to exit GUI, turn pauseg back on 
        * and tell it to exit on its own */
-		pauseg = pauseg_old;
-		exitgui = 1;
-	}
-	return result;
+      pauseg = pauseg_old;
+      exitgui = 1;
+   }
+   return result;
 }
 
 int retro_keymap_id(const char* val)
